@@ -2,12 +2,13 @@ import json
 import aiohttp
 import os
 import asyncio
+
+from openai import api_key
 from pptx import Presentation
 from openAi import OpenAIAPI
 
 
 async def generate_ai_response(prompt):
-    api_key = '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'
 
     # Make an asynchronous request to the OpenAI API to generate AI response
     api_endpoint = "https://api.openai.com/v1/engines/davinci-codex/completions"

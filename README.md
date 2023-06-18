@@ -1,35 +1,29 @@
-# PowerPoint Analyzer
+# Presentation Explainer
 
-PowerPoint Analyzer is a Python project that processes PowerPoint presentations and generates explanations using the OpenAI API. It helps you summarize the content of each slide and provide additional information.
+Presentation Explainer is a Python-based application that processes PowerPoint presentations and generates explanations for each slide using OpenAI's GPT model. It provides a Web API, Python client, and an Explainer system for efficient processing and retrieval of explanations.
 
 ## Features
 
-- Extract text content from PowerPoint slides.
-- Utilize the OpenAI API to generate explanations for each slide.
-- Save the generated explanations to a JSON file.
+- Process PowerPoint presentations and generate explanations for each slide.
+- Web API for uploading presentations, checking status, and retrieving explanations.
+- Python client for convenient interaction with the Web API.
+- Explainer system that continuously processes files dropped into a directory.
+- System test for end-to-end testing of the entire system.
+
+## Prerequisites
+
+- Python 3.x
+- Dependencies listed in `requirements.txt`
 
 ## Installation
 
 1. Clone the repository:
 
    ```shell
-   git clone https://github.com/your-username/powerpoint-analyzer.git
+   git clone https://github.com/your-username/presentation-explainer.git
    ```
 
-2. Navigate to the project directory:
-
-   ```shell
-   cd powerpoint-analyzer
-   ```
-
-3. Create a virtual environment (optional but recommended):
-
-   ```shell
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-4. Install the required dependencies:
+2. Install the required dependencies:
 
    ```shell
    pip install -r requirements.txt
@@ -37,36 +31,88 @@ PowerPoint Analyzer is a Python project that processes PowerPoint presentations 
 
 ## Usage
 
-1. Set up your OpenAI API key:
-   - Sign up for an OpenAI account and obtain an API key.
-   - Export the API key as an environment variable:
-     ```shell
-     export OPENAI_API_KEY=your-api-key
-     ```
-   
-2. Run the script:
+### Web API
+
+1. Start the Web API by running `web_api.py`:
+
    ```shell
-   python main.py <presentation_path>
+   python web_api.py
    ```
-   Replace `<presentation_path>` with the path to your PowerPoint presentation file.
 
-3. The script will process the presentation, generate explanations for each slide, and save the explanations to a JSON file.
+2. The Web API will be accessible at `http://localhost:5000`. Use the following endpoints:
 
-## Example
+   - `POST /upload`: Upload a PowerPoint presentation. Returns the UID of the upload.
+   - `GET /status/{uid}`: Check the status of an upload. Returns the status, filename, timestamp, and explanation.
+   - `GET /explanation/{uid}`: Retrieve the explanation for an upload.
 
-```shell
-python main.py path/to/presentation.pptx
-```
+### Python Client
 
-## Requirements
+The Python client provides a convenient way to interact with the Web API.
 
-- Python 3.6+
-- `openai` library (install via `pip install openai`)
-- `pptx` library (install via `pip install python-pptx`)
+1. Import the `ExplainerClient` class from `explainer_client.py`:
 
-## License
+   ```python
+   from explainer_client import ExplainerClient
+   ```
 
-This project is licensed under the MIT License. See the `LICENSE` file for more details.
-```
+2. Create an instance of the client, specifying the base URL of the Web API:
 
-Feel free to customize the content and sections according to your project's specific details and requirements.
+   ```python
+   client = ExplainerClient("http://localhost:5000")
+   ```
+
+3. Use the client's methods to upload presentations and check status:
+
+   ```python
+   # Upload a presentation
+   uid = client.upload("path/to/presentation.pptx")
+
+   # Check the status of an upload
+   status = client.status(uid)
+   if status.is_done():
+       print("Upload processed successfully.")
+       print("Explanation:", status.explanation)
+   else:
+       print("Upload is still pending.")
+
+   # Retrieve the explanation for an upload
+   explanation = client.retrieve_explanation(uid)
+   print("Explanation:", explanation)
+   ```
+
+### Explainer
+
+The Explainer system continuously processes files dropped into a directory.
+
+1. Start the Explainer by running `explainer.py`:
+
+   ```shell
+   python explainer.py
+   ```
+
+   The Explainer will scan the `uploads` folder, process any unprocessed files, and save the explanations in the `outputs` folder.
+
+### System Test
+
+The system test performs an end-to-end run-through of the entire system.
+
+1. Start the Web API:
+
+   ```shell
+   python web_api.py
+   ```
+
+2. Start the Explainer:
+
+   ```shell
+   python explainer.py
+   ```
+
+3. Run the system test script:
+
+   ```shell
+   python system_test.py
+   ```
+
+   The script will upload a sample presentation, check its status, and display the results.
+

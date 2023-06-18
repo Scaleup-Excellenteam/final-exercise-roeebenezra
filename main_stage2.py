@@ -6,9 +6,11 @@ import os
 import uuid
 
 from app import app
+from explainer_client import ExplainerClient
 
 from openAi import OpenAi
 from pptxParser import PresentationParser
+from explainer_system import explainer_system
 
 
 def print_to_file(explanations, presentation_path, uid):
@@ -54,9 +56,29 @@ def main():
     # Run the Flask application
     app.run(debug=True)
 
+    # Start the explainer system
+    explainer_system()
+
+
+
 
 if __name__ == "__main__":
     # Start timer to measure execution time
     start_time = time.time()
     main()
+
+    client = ExplainerClient("http://localhost:5000")  # Replace with the base URL of your web app
+
+    # Upload a file and get the UID
+    file_path = "path/to/test.pptx"
+    uid = client.upload(file_path)
+    print(f"Uploaded file with UID: {uid}")
+
+    # Get the status of the upload
+    status = client.status(uid)
+    print(f"Status: {status.status}")
+    print(f"Filename: {status.filename}")
+    print(f"Timestamp: {status.timestamp}")
+    print(f"Explanation: {status.explanation}")
+
     end_time = time.time()

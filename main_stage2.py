@@ -3,20 +3,24 @@ import time
 import argparse
 import json
 import os
+import uuid
+
+from app import app
 
 from openAi import OpenAi
 from pptxParser import PresentationParser
 
 
-def print_to_file(explanations, presentation_path) -> None:
+def print_to_file(explanations, presentation_path, uid):
     """
     Print the explanations to a file.
     :param explanations: list of explanations from the OpenAI API responses
     :param presentation_path: path to the PowerPoint presentation
+    :param uid: UID of the upload
     :return: None
     """
-    presentation_name = os.path.splitext(os.path.basename(presentation_path))[0]
-    output_file = f"{presentation_name}.json"
+    presentation_name = presentation_path.split("/")[-1].split(".")[0]
+    output_file = f"{presentation_name}_{uid}.json"
     output_data = {"explanations": explanations}
 
     with open(output_file, "w") as f:
@@ -30,7 +34,7 @@ def main():
     args = parser.parse_args()
     presentation_path = args.presentation_path
 
-    print(f"Processing the pptx: {presentation_path}")
+    print(f"Processing {presentation_path}")
 
     # Parse presentation
     presentation_parser = PresentationParser(presentation_path)
@@ -38,15 +42,17 @@ def main():
 
     # Generate explanations
     api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key:
-        print("ERROR: Please set the OPENAI_API_KEY environment variable.")
-        return
-
     openai_api = OpenAi(api_key=api_key)
-    loop = asyncio.get_event_loop()
-    explanations = loop.run_until_complete(openai_api.generate_explanations(slides))
+    explanations = asyncio.run(openai_api.generate_explanations(slides))
 
-    print_to_file(explanations, presentation_path)
+    # Generate UID for the uploaded file
+    uid = str(uuid.uuid4())
+
+    # Save the file
+    print_to_file(explanations, presentation_path, uid)
+
+    # Run the Flask application
+    app.run(debug=True)
 
 
 if __name__ == "__main__":
